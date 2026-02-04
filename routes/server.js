@@ -14,16 +14,16 @@ let cache = {
 };
 
 const SERVER_CONFIG = {
-  ip: "SERVER_IP",
-  port: "SERVER_PORT",
-  name: "SERVER_NAME",
-  version: "SERVER_VERSION",
+  ip: "pvtserver.play.hosting",
+  port: "25565",
+  name: "PVT X asbag",
+  version: "1.8+",
   description: "A Best Minecraft Network",
   website: "website_link",
   discord: "discord_invite_link",
-  location: "India",
-  region: "India Asia/Kolkata",
-  owner: "Hopingboyz Team",
+  location: "US",
+  region: "US Ohio",
+  owner: "asbag",
   started: "2024-01-01",
   features: ["Lifesteal", "Survival", "Economy", "Quests", "Custom Items", "Friendly Community"],
   gamemodes: ["Survival", "Lifesteal"],
@@ -31,7 +31,7 @@ const SERVER_CONFIG = {
     discord: "your_discord_invite_link",
     website: "website_link",
     twitter: "leave_blank",
-    youtube: "your_youtube_link"
+    youtube: "youtube.com/@why_asbag"
   }
 };
 
