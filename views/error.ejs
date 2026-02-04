@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Error <%= status || 500 %></title>
+  <style>
+    body {
+      background: #0e0e0e;
+      color: #fff;
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      margin-top: 10%;
+    }
+    .container {
+      background: #1a1a1a;
+      padding: 30px;
+      border-radius: 12px;
+      width: 60%;
+      margin: auto;
+      box-shadow: 0 0 10px #000;
+    }
+    h1 {
+      color: #ff5555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Error <%= status || 500 %></h1>
+    <p><%= message || "Something went wrong." %></p>
+    <% if (error && error.stack) { %>
+      <pre><%= error.stack %></pre>
+    <% } %>
+  </div>
+</body>
+</html>

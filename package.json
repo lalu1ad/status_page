@@ -1,0 +1,36 @@
+{
+    "name": "Minecraft Status Bot",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "start": "node app.js & node cloudflare.js"
+    },
+    "dependencies": {
+        "axios": "^1.7.3",
+        "body-parser": "^1.20.3",
+        "cookie-parser": "^1.4.7",
+        "debug": "^4.3.7",
+        "dotenv": "^16.4.5",
+        "ejs": "^3.1.10",
+        "express": "^4.19.2",
+        "express-rate-limit": "^8.1.0",
+        "lodash.clonedeep": "^4.5.0",
+        "morgan": "^1.10.0",
+        "node-fetch": "^3.3.2",
+        "serve-favicon": "^2.5.0",
+        "uuid": "^13.0.0"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "keywords": [
+        "minecraft",
+        "status",
+        "ejs",
+        "express"
+    ],
+    "description": "A Minecraft server status website built using Express and EJS with live MOTD and player count display.",
+    "author": "Hopingboyz",
+    "license": "MIT"
+}

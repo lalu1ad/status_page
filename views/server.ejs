@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= server.name || 'Minecraft Server' %> | Server Status</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d'
+            },
+            darkbg: '#0f172a',
+            card: '#1e293b'
+          },
+          fontFamily: {
+            mc: ['"Press Start 2P"', 'monospace'],
+            inter: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      background: radial-gradient(circle at top, #0a0a0a 0%, #0f172a 100%);
+      color: #e2e8f0;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .status-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      display: inline-block;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+    .tab-active {
+      border-bottom: 2px solid #22c55e;
+      color: #22c55e !important;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .fade-in { animation: fadeIn 0.5s ease-in; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body class="p-4 md:p-6">
+
+  <!-- HEADER -->
+  <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+    <div class="flex items-center gap-4">
+      <% if (server.icon) { %>
+        <img src="<%= server.icon %>" alt="Server Icon" class="w-16 h-16 rounded-lg border-2 border-primary-600 shadow-md">
+      <% } else { %>
+        <div class="w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-800 rounded-lg flex items-center justify-center">
+          <i class="fas fa-server text-white text-2xl"></i>
+        </div>
+      <% } %>
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold font-mc text-primary-500"><%= server.name || 'Unknown Server' %></h1>
+        <p class="text-gray-400 text-sm md:text-base"><%= server.description || 'No description provided.' %></p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button id="themeToggle" class="p-2 glass rounded-lg">
+        <i class="fas fa-moon text-yellow-400"></i>
+      </button>
+      <% if (server.social?.discord) { %>
+      <a href="<%= server.social.discord %>" target="_blank" class="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 transition">
+        <i class="fab fa-discord"></i> Join Discord
+      </a>
+      <% } %>
+    </div>
+  </header>
+
+  <!-- STATUS CARD -->
+  <section class="glass rounded-2xl p-6 mb-8 fade-in">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+      <div class="flex items-center gap-3">
+        <div class="status-dot <%= server.status === 'Online' ? 'bg-green-500' : 'bg-red-500' %>"></div>
+        <h2 class="text-xl font-semibold"><%= server.status || 'Unknown' %></h2>
+        <span class="text-gray-400 ml-2 text-sm"><%= server.ip %>:<%= server.port %></span>
+        <button id="copyIp" class="text-gray-400 hover:text-white ml-2 text-xs"><i class="fas fa-copy"></i></button>
+      </div>
+      <p class="text-gray-400 text-sm mt-2 md:mt-0"><i class="fas fa-sync-alt fa-spin text-primary-500"></i> Last Updated: <%= lastUpdated %></p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="p-4 bg-card rounded-lg text-center">
+        <p class="text-gray-400 text-sm mb-1">Players</p>
+        <p class="text-2xl font-bold text-primary-500"><%= server.players?.online || 0 %> / <%= server.players?.max || 0 %></p>
+      </div>
+      <div class="p-4 bg-card rounded-lg text-center">
+        <p class="text-gray-400 text-sm mb-1">Version</p>
+        <p class="text-xl font-semibold"><%= server.version || 'N/A' %></p>
+      </div>
+      <div class="p-4 bg-card rounded-lg text-center">
+        <p class="text-gray-400 text-sm mb-1">Response</p>
+        <p class="text-xl font-semibold"><%= (performance?.averageResponseTime || 0).toFixed(1) %>ms</p>
+      </div>
+      <div class="p-4 bg-card rounded-lg text-center">
+        <p class="text-gray-400 text-sm mb-1">Uptime</p>
+        <p class="text-xl font-semibold"><%= server.uptime || '0%' %></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- NAVIGATION -->
+  <div class="flex mb-6 border-b border-gray-700 overflow-x-auto no-scrollbar">
+    <button class="tab-btn tab-active py-3 px-6 text-gray-400 hover:text-white" data-tab="overview"><i class="fas fa-info-circle mr-2"></i>Overview</button>
+    <button class="tab-btn py-3 px-6 text-gray-400 hover:text-white" data-tab="players"><i class="fas fa-users mr-2"></i>Players</button>
+    <button class="tab-btn py-3 px-6 text-gray-400 hover:text-white" data-tab="performance"><i class="fas fa-chart-bar mr-2"></i>Performance</button>
+    <button class="tab-btn py-3 px-6 text-gray-400 hover:text-white" data-tab="info"><i class="fas fa-cog mr-2"></i>Server Info</button>
+  </div>
+
+  <!-- TAB PANELS -->
+  <div id="tabContent">
+    <div class="tab-panel active fade-in" id="overview-tab">
+      <div class="glass rounded-2xl p-6 mb-6">
+        <h3 class="text-lg font-semibold mb-3 text-primary-500"><i class="fas fa-scroll mr-2"></i>MOTD</h3>
+        <p class="text-gray-300 text-sm leading-relaxed font-mc"><%- server.motdHtml || 'No MOTD available.' %></p>
+      </div>
+    </div>
+
+    <div class="tab-panel fade-in" id="players-tab">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="text-lg font-semibold mb-4 text-primary-500"><i class="fas fa-users mr-2"></i>Online Players (<%= server.players?.online || 0 %>)</h3>
+        <% if (server.playerList?.length > 0) { %>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            <% server.playerList.forEach(player => { %>
+              <div class="bg-card p-4 rounded-lg text-center hover:scale-105 transition">
+                <img src="https://mc-heads.net/avatar/<%= player.id || player.name %>/100" class="mx-auto rounded-full mb-3 border-2 border-primary-500">
+                <p class="text-sm font-semibold text-gray-200 truncate"><%= player.name %></p>
+                <button onclick="window.open('https://namemc.com/profile/<%= player.name %>','_blank')" class="mt-2 text-xs text-primary-500 hover:text-primary-400">View Profile</button>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="text-center py-10 text-gray-400"><i class="fas fa-user-slash text-3xl mb-2"></i><p>No players online</p></div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="tab-panel fade-in" id="performance-tab">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="text-lg font-semibold mb-3 text-primary-500"><i class="fas fa-chart-line mr-2"></i>Performance Charts</h3>
+        <canvas id="performanceChart" height="250"></canvas>
+      </div>
+    </div>
+
+    <div class="tab-panel fade-in" id="info-tab">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="text-lg font-semibold mb-3 text-primary-500"><i class="fas fa-info-circle mr-2"></i>Server Information</h3>
+        <div class="space-y-2 text-gray-300 text-sm">
+          <p><strong>IP:</strong> <%= server.ip %></p>
+          <p><strong>Port:</strong> <%= server.port %></p>
+          <p><strong>Version:</strong> <%= server.version %></p>
+          <p><strong>Software:</strong> <%= server.software || 'Unknown' %></p>
+          <p><strong>Region:</strong> <%= server.region || 'N/A' %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="mt-10 text-center text-gray-500 text-xs">
+    © <%= new Date().getFullYear() %> <%= server.name || 'Minecraft Server' %> | Powered by Hopingboyz
+  </footer>
+
+  <script>
+    // === THEME TOGGLE ===
+    const html = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const icon = themeToggle.querySelector('i');
+    if (localStorage.getItem('theme') === 'light') html.classList.remove('dark');
+    themeToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+      icon.classList.toggle('fa-sun');
+      icon.classList.toggle('fa-moon');
+    });
+
+    // === TAB NAVIGATION ===
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('tab-active');
+        document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+      });
+    });
+
+    // === COPY IP ===
+    const copyIp = document.getElementById('copyIp');
+    if (copyIp) {
+      copyIp.addEventListener('click', () => {
+        navigator.clipboard.writeText('<%= server.ip %>:<%= server.port %>').then(() => {
+          copyIp.innerHTML = '<i class="fas fa-check text-green-500"></i>';
+          setTimeout(() => copyIp.innerHTML = '<i class="fas fa-copy"></i>', 1500);
+        });
+      });
+    }
+
+    // === CHARTS ===
+    const historyData = <%- JSON.stringify(history || []) %>;
+    if (historyData.length) {
+      const ctx = document.getElementById('performanceChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: historyData.map(h => new Date(h.timestamp).toLocaleTimeString()),
+          datasets: [{
+            label: 'Players Online',
+            data: historyData.map(h => h.players),
+            borderColor: '#22c55e',
+            tension: 0.3,
+            fill: true,
+            backgroundColor: 'rgba(34,197,94,0.1)'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
