@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - <%= settings.site_name %></title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+    </style>
+</head>
+<body class="text-white">
+    <div class="login-card w-full max-w-md mx-4 p-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-server text-white text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold gradient-text mb-2"><%= settings.site_name %></h1>
+            <p class="text-gray-400">Admin Panel Login</p>
+        </div>
+
+        <!-- Login Form -->
+        <form method="POST" action="/admin/login">
+            <% if (error) { %>
+                <div class="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mb-6">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-exclamation-circle text-red-400"></i>
+                        <span class="text-red-400 text-sm"><%= error %></span>
+                    </div>
+                </div>
+            <% } %>
+
+            <div class="space-y-6">
+                <!-- Username -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">
+                        <i class="fas fa-user mr-2"></i>Username
+                    </label>
+                    <input 
+                        type="text" 
+                        name="username" 
+                        required 
+                        class="input-field w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Enter your username"
+                        value="admin"
+                    >
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">
+                        <i class="fas fa-lock mr-2"></i>Password
+                    </label>
+                    <input 
+                        type="password" 
+                        name="password" 
+                        required 
+                        class="input-field w-full px-4 py-3 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Enter your password"
+                        value="admin123"
+                    >
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit"
+                    class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 px-4 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+                >
+                    <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                </button>
+            </div>
+        </form>
+        <!-- Footer -->
+        <div class="text-center mt-8 pt-6 border-t border-gray-800">
+            <p class="text-gray-500 text-sm"><%= settings.site_name %></p>
+        </div>
+    </div>
+
+    <script>
+        // Add floating animation to the logo
+        document.addEventListener('DOMContentLoaded', () => {
+            const logo = document.querySelector('.w-16');
+            let float = true;
+            
+            function floatLogo() {
+                if (float) {
+                    logo.style.transform = 'translateY(-5px)';
+                } else {
+                    logo.style.transform = 'translateY(0px)';
+                }
+                float = !float;
+            }
+            
+            setInterval(floatLogo, 2000);
+        });
+    </script>
+</body>
+</html>

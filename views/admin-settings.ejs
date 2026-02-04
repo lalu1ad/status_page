@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - <%= settings.site_name %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: <%= settings.primary_color || '#6366f1' %>;
+        }
+        body[data-theme="dark"] { background: #121212; color: #e0e0e0; }
+        body[data-theme="light"] { background: #f8f9fa; color: #212529; }
+        .sidebar {
+            background: #1a1c23;
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: #b0b3b8;
+            padding: 0.75rem 1rem;
+            margin: 0.25rem 0;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        .settings-nav .nav-link { 
+            color: #6c757d; 
+            border-left: 3px solid transparent; 
+            transition: all 0.2s;
+        }
+        .settings-nav .nav-link.active { 
+            color: var(--primary-color); 
+            border-left-color: var(--primary-color); 
+            background: #f8f9fa; 
+            font-weight: 500;
+        }
+        .setting-item { border-bottom: 1px solid #eee; padding: 1rem 0; }
+        .setting-item:last-child { border-bottom: none; }
+        .form-control-color { width: 100px; height: 38px; padding: 0.375rem; }
+    </style>
+</head>
+<body data-theme="<%= settings.theme || 'dark' %>">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar unchanged -->
+            <div class="col-md-3 col-lg-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-center mb-4"><i class="fas fa-server me-2"></i><%= settings.site_name %></h4>
+                    <ul class="nav flex-column">
+                        <li class="nav-item"><a class="nav-link" href="/admin"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/admin/nodes"><i class="fas fa-server me-2"></i>Nodes</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/admin/alerts"><i class="fas fa-bell me-2"></i>Alerts</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/admin/users"><i class="fas fa-users me-2"></i>Users</a></li>
+                        <li class="nav-item"><a class="nav-link active" href="/admin/settings"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/admin/audit"><i class="fas fa-clipboard-list me-2"></i>Audit Logs</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/admin/profile"><i class="fas fa-user me-2"></i>Profile</a></li>
+                        <li class="nav-item mt-3"><a class="nav-link text-danger" href="/admin/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 ms-sm-auto px-4">
+                <nav class="navbar navbar-light bg-white border-bottom py-3">
+                    <div class="container-fluid">
+                        <span class="navbar-brand"><i class="fas fa-cog me-2"></i>System Settings</span>
+                        <div class="d-flex align-items-center">
+                            <span class="me-3">Welcome, <%= user.full_name || user.username %></span>
+                            <img src="<%= user.avatar || '/img/default-avatar.png' %>" alt="Avatar" class="rounded-circle" width="40" height="40">
+                        </div>
+                    </div>
+                </nav>
+
+                <div class="row mt-4">
+                    <div class="col-md-3">
+                        <!-- Settings Navigation -->
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <ul class="nav flex-column settings-nav">
+                                    <li class="nav-item"><a class="nav-link active" href="#general" data-bs-toggle="tab"><i class="fas fa-globe me-2"></i>General</a></li>
+                                    <li class="nav-item"><a class="nav-link" href="#appearance" data-bs-toggle="tab"><i class="fas fa-palette me-2"></i>Appearance</a></li>
+                                    <li class="nav-item"><a class="nav-link" href="#monitoring" data-bs-toggle="tab"><i class="fas fa-heartbeat me-2"></i>Monitoring</a></li>
+                                    <li class="nav-item"><a class="nav-link" href="#alerts" data-bs-toggle="tab"><i class="fas fa-bell me-2"></i>Alerts</a></li>
+                                    <li class="nav-item"><a class="nav-link" href="#email" data-bs-toggle="tab"><i class="fas fa-envelope me-2"></i>Email</a></li>
+                                    <li class="nav-item"><a class="nav-link" href="#export" data-bs-toggle="tab"><i class="fas fa-download me-2"></i>Data Export</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-9">
+                        <form method="POST" action="/admin/settings" id="settingsForm">
+                            <div class="tab-content">
+                                <!-- General -->
+                                <div class="tab-pane fade show active" id="general">
+                                    <div class="card">
+                                        <div class="card-header"><h5><i class="fas fa-globe me-2"></i>General Settings</h5></div>
+                                        <div class="card-body">
+                                            <% settings.filter(s => s.category === 'general').forEach(setting => { %>
+                                            <div class="setting-item">
+                                                <label class="form-label"><%= setting.description || setting.key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) %></label>
+                                                <% if (setting.type === 'boolean') { %>
+                                                <select class="form-select" name="<%= setting.key %>">
+                                                    <option value="true" <%= setting.value === 'true' ? 'selected' : '' %>>Enabled</option>
+                                                    <option value="false" <%= setting.value === 'false' ? 'selected' : '' %>>Disabled</option>
+                                                </select>
+                                                <% } else if (setting.type === 'number') { %>
+                                                <input type="number" class="form-control" name="<%= setting.key %>" value="<%= setting.value %>" min="1">
+                                                <% } else { %>
+                                                <input type="text" class="form-control" name="<%= setting.key %>" value="<%= setting.value %>">
+                                                <% } %>
+                                                <small class="text-muted"><%= setting.key %></small>
+                                            </div>
+                                            <% }); %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Appearance -->
+                                <div class="tab-pane fade" id="appearance">
+                                    <div class="card">
+                                        <div class="card-header"><h5><i class="fas fa-palette me-2"></i>Appearance</h5></div>
+                                        <div class="card-body">
+                                            <% settings.filter(s => s.category === 'appearance').forEach(setting => { %>
+                                            <div class="setting-item">
+                                                <label class="form-label"><%= setting.description || setting.key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) %></label>
+                                                <% if (setting.key === 'theme') { %>
+                                                <select class="form-select" name="theme" id="themeSelect">
+                                                    <option value="dark" <%= setting.value === 'dark' ? 'selected' : '' %>>Dark</option>
+                                                    <option value="light" <%= setting.value === 'light' ? 'selected' : '' %>>Light</option>
+                                                    <option value="auto" <%= setting.value === 'auto' ? 'selected' : '' %>>Auto (system)</option>
+                                                </select>
+                                                <% } else if (setting.key === 'primary_color') { %>
+                                                <input type="color" class="form-control form-control-color w-100" name="primary_color" value="<%= setting.value %>" id="primaryColor">
+                                                <% } else { %>
+                                                <input type="text" class="form-control" name="<%= setting.key %>" value="<%= setting.value %>">
+                                                <% } %>
+                                                <small class="text-muted"><%= setting.key %></small>
+                                            </div>
+                                            <% }); %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Monitoring -->
+                                <div class="tab-pane fade" id="monitoring">
+                                    <div class="card">
+                                        <div class="card-header"><h5><i class="fas fa-heartbeat me-2"></i>Monitoring</h5></div>
+                                        <div class="card-body">
+                                            <% settings.filter(s => s.category === 'monitoring').forEach(setting => { %>
+                                            <div class="setting-item">
+                                                <label class="form-label"><%= setting.description %></label>
+                                                <input type="number" class="form-control" name="<%= setting.key %>" value="<%= setting.value %>" min="1">
+                                                <small class="text-muted"><%= setting.key %></small>
+                                            </div>
+                                            <% }); %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Alerts -->
+                                <div class="tab-pane fade" id="alerts">
+                                    <div class="card">
+                                        <div class="card-header"><h5><i class="fas fa-bell me-2"></i>Alerts & Thresholds</h5></div>
+                                        <div class="card-body">
+                                            <% settings.filter(s => s.category === 'alerts').forEach(setting => { %>
+                                            <div class="setting-item">
+                                                <label class="form-label"><%= setting.description %></label>
+                                                <% if (setting.type === 'boolean') { %>
+                                                <select class="form-select" name="<%= setting.key %>">
+                                                    <option value="true" <%= setting.value === 'true' ? 'selected' : '' %>>Enabled</option>
+                                                    <option value="false" <%= setting.value === 'false' ? 'selected' : '' %>>Disabled</option>
+                                                </select>
+                                                <% } else { %>
+                                                <input type="number" class="form-control" name="<%= setting.key %>" value="<%= setting.value %>" min="1" max="100">
+                                                <% } %>
+                                                <small class="text-muted"><%= setting.key %></small>
+                                            </div>
+                                            <% }); %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Email -->
+                                <div class="tab-pane fade" id="email">
+                                    <div class="card">
+                                        <div class="card-header"><h5><i class="fas fa-envelope me-2"></i>Email Notifications</h5></div>
+                                        <div class="card-body">
+                                            <% settings.filter(s => s.category === 'email').forEach(setting => { %>
+                                            <div class="setting-item">
+                                                <label class="form-label"><%= setting.description %></label>
+                                                <% if (setting.type === 'boolean') { %>
+                                                <select class="form-select" name="<%= setting.key %>">
+                                                    <option value="true" <%= setting.value === 'true' ? 'selected' : '' %>>Enabled</option>
+                                                    <option value="false" <%= setting.value === 'false' ? 'selected' : '' %>>Disabled</option>
+                                                </select>
+                                                <% } else { %>
+                                                <input type="<%= setting.key.includes('pass') ? 'password' : 'text' %>" class="form-control" name="<%= setting.key %>" value="<%= setting.value %>">
+                                                <% } %>
+                                                <small class="text-muted"><%= setting.key %></small>
+                                            </div>
+                                            <% }); %>
+                                            <div class="mt-4">
+                                                <button type="button" class="btn btn-outline-info" id="testEmailBtn">
+                                                    <i class="fas fa-paper-plane me-2"></i>Send Test Email
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Export / Backup -->
+                                <div class="tab-pane fade" id="export">
+                                    <div class="card">
+                                        <div class="card-header"><h5><i class="fas fa-download me-2"></i>Data Export & Backup</h5></div>
+                                        <div class="card-body">
+                                            <p class="mb-4">Download backups or export data in different formats.</p>
+                                            <div class="row g-4">
+                                                <div class="col-md-6">
+                                                    <div class="card bg-light h-100">
+                                                        <div class="card-body text-center">
+                                                            <i class="fas fa-database fa-3x text-primary mb-3"></i>
+                                                            <h5>Full Database Backup</h5>
+                                                            <a href="/admin/backup" class="btn btn-outline-primary mt-2">Download SQLite Backup</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="card bg-light h-100">
+                                                        <div class="card-body">
+                                                            <h5>Export Specific Data</h5>
+                                                            <div class="d-grid gap-2 mt-3">
+                                                                <a href="/admin/export/nodes" class="btn btn-outline-secondary">Nodes (CSV)</a>
+                                                                <a href="/admin/export/stats" class="btn btn-outline-secondary">Statistics (JSON)</a>
+                                                                <a href="/admin/export/users" class="btn btn-outline-secondary">Users (CSV)</a>
+                                                                <a href="/admin/export/alerts" class="btn btn-outline-secondary">Alerts (JSON)</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="card mt-4 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>Apply Changes</strong>
+                                            <p class="text-muted mb-0 small">Some settings (theme, color) apply instantly. Others may need refresh.</p>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                                            <i class="fas fa-save me-2"></i>Save All Settings
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Tab init
+        const triggerTabList = document.querySelectorAll('.settings-nav a');
+        triggerTabList.forEach(triggerEl => {
+            triggerEl.addEventListener('click', e => {
+                e.preventDefault();
+                new bootstrap.Tab(triggerEl).show();
+            });
+        });
+
+        // Live primary color preview
+        document.getElementById('primaryColor')?.addEventListener('input', e => {
+            document.documentElement.style.setProperty('--primary-color', e.target.value);
+        });
+
+        // Theme preview
+        document.getElementById('themeSelect')?.addEventListener('change', e => {
+            document.body.dataset.theme = e.target.value;
+        });
+
+        // Test email button
+        document.getElementById('testEmailBtn')?.addEventListener('click', () => {
+            fetch('/admin/settings/test-email', { method: 'POST' })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success) alert('Test email sent successfully!');
+                    else alert('Failed: ' + (res.error || 'Check SMTP config'));
+                })
+                .catch(() => alert('Network error'));
+        });
+
+        // Form submit feedback
+        document.getElementById('settingsForm').addEventListener('submit', function(e) {
+            // Optional: show loading state
+            this.querySelector('[type="submit"]').innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+        });
+    </script>
+</body>
+</html>
