@@ -14,7 +14,7 @@ let cache = {
 };
 
 const SERVER_CONFIG = {
-  ip: "pvtserver.play.hosting",
+  ip: "pc.play.hosting",
   port: "25565",
   name: "PVT X asbag",
   version: "1.8+",
